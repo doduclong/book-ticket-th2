@@ -67,6 +67,54 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         return sqLiteDatabase.insert("ticket", null, values);
     }
 
+    public Ticket getItemById(int id){
+        String where="id=?";
+        String[] agrs={Integer.toString(id)};
+        SQLiteDatabase st=getReadableDatabase();
+        Cursor rs=st.query("ticket",null,where,agrs,null,
+                null,null);
+        if(rs!=null && rs.moveToNext()){
+            return new Ticket(rs.getInt(0),rs.getString(1),rs.getString(1),rs.getString(3),
+                    rs.getString(4),rs.getString(5));
+
+        }
+        return null;
+    }
+    //update item
+    public int updateItem(Ticket ticket){
+        ContentValues values=new ContentValues();
+        values.put("name", ticket.getName());
+        values.put("departure", ticket.getDeparture());
+        values.put("time", ticket.getTime());
+        values.put("luggage", ticket.getLuggage());
+        values.put("service", ticket.getService());
+        String where="id=?";
+        String[] agrs={Integer.toString(ticket.getId())};
+        SQLiteDatabase st=getWritableDatabase();
+        return st.update("ticket",values,where,agrs);
+    }
+    public int deleteItem(int id){
+        String where="id=?";
+        String[] agrs={Integer.toString(id)};
+        SQLiteDatabase st=getWritableDatabase();
+        return st.delete("ticket",where,agrs);
+    }
+    public List<Ticket> searchItemBykey(String key){
+        List<Ticket> list=new ArrayList<>();
+        String sql="select t.id,t.name,t.price,t.date,c.id,c.name " +
+                "from categories c inner join items t " +
+                "on (c.id=t.cid) where t.name like ? or c.name like ?";
+        String[] agrs={"%"+key+"%","%"+key+"%"};
+        SQLiteDatabase st=getReadableDatabase();
+        Cursor rs=st.rawQuery(sql,agrs);
+        while(rs!=null && rs.moveToNext()){
+            list.add(new Ticket(rs.getInt(0),rs.getString(1),rs.getString(1),rs.getString(3),
+                    rs.getString(4),rs.getString(5)));
+        }
+        rs.close();
+        return list;
+    }
+
     public void clearDatabase(String TABLE_NAME) {
         SQLiteDatabase db = getReadableDatabase();
         String clearDBQuery = "DELETE FROM " + TABLE_NAME;
